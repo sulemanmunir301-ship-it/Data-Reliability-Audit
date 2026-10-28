@@ -1,0 +1,51 @@
+version: 2
+models:
+  - name: stg_orders
+    config: {meta: {owner: "sales-ops@example.com"}}
+    columns:
+      - name: order_id
+        data_tests: [unique, not_null]
+      - name: customer_id
+        data_tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('stg_customers')
+                field: customer_id
+      - name: order_status
+        data_tests:
+          - accepted_values:
+              arguments:
+                values: [delivered, shipped, canceled, unavailable, invoiced, processing, created, approved]
+  - name: stg_customers
+    config: {meta: {owner: "sales-ops@example.com"}}
+    columns:
+      - name: customer_id
+        data_tests: [unique, not_null]
+  - name: stg_order_items
+    config: {meta: {owner: "fulfilment@example.com"}}
+    columns:
+      - name: order_id
+        data_tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('stg_orders')
+                field: order_id
+      - name: price
+        data_tests: [not_null]
+  - name: stg_payments
+    config: {meta: {owner: "finance@example.com"}}
+    columns:
+      - name: order_id
+        data_tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('stg_orders')
+                field: order_id
+      - name: payment_type
+        data_tests:
+          - accepted_values:
+              arguments:
+                values: [credit_card, boleto, voucher, debit_card, not_defined]

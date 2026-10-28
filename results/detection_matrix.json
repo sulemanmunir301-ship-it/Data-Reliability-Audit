@@ -1,0 +1,127 @@
+{
+  "baseline_on_clean": [
+    {
+      "check": "t_payment_vs_item_total",
+      "kind": "test",
+      "status": "warn",
+      "failures": 633,
+      "message": "Got 633 results, configured to warn if != 0"
+    }
+  ],
+  "scenarios": {
+    "A_partial_item_loss": {
+      "description": "40% of order_items missing for orders placed 2018-03-01..2018-03-10",
+      "detected_by": [
+        {
+          "check": "t_delivered_orders_without_items",
+          "kind": "test",
+          "status": "fail",
+          "failures": 430,
+          "message": "Got 430 results, configured to fail if != 0"
+        },
+        {
+          "check": "t_volume_daily_order_items_drop",
+          "kind": "test",
+          "status": "fail",
+          "failures": 8,
+          "message": "Got 8 results, configured to fail if != 0"
+        }
+      ]
+    },
+    "B_null_customer_ids": {
+      "description": "15% of orders from 2018-04-01 lose customer_id",
+      "detected_by": [
+        {
+          "check": "not_null_stg_orders_customer_id",
+          "kind": "test",
+          "status": "fail",
+          "failures": 1637,
+          "message": "Got 1637 results, configured to fail if != 0"
+        }
+      ]
+    },
+    "C_duplicated_payments": {
+      "description": "All payments for orders placed 2018-02-14 loaded twice (retry)",
+      "detected_by": [
+        {
+          "check": "t_duplicate_payment_rows",
+          "kind": "test",
+          "status": "fail",
+          "failures": 116,
+          "message": "Got 116 results, configured to fail if != 0"
+        }
+      ]
+    },
+    "D_schema_drift": {
+      "description": "order_items.price silently changes type DOUBLE -> VARCHAR",
+      "detected_by": [
+        {
+          "check": "t_raw_schema_drift",
+          "kind": "test",
+          "status": "fail",
+          "failures": 1,
+          "message": "Got 1 result, configured to fail if != 0"
+        }
+      ]
+    },
+    "E_loader_stopped": {
+      "description": "Loader stops: no data after 2018-05-31 and _loaded_at is 5 days old",
+      "detected_by": [
+        {
+          "check": "source_freshness.raw.order_items",
+          "kind": "freshness",
+          "status": "error",
+          "failures": null,
+          "message": "max_loaded_at_time_ago_in_s=432175.123169"
+        },
+        {
+          "check": "source_freshness.raw.order_payments",
+          "kind": "freshness",
+          "status": "error",
+          "failures": null,
+          "message": "max_loaded_at_time_ago_in_s=432175.032236"
+        },
+        {
+          "check": "source_freshness.raw.customers",
+          "kind": "freshness",
+          "status": "error",
+          "failures": null,
+          "message": "max_loaded_at_time_ago_in_s=432175.194048"
+        },
+        {
+          "check": "source_freshness.raw.orders",
+          "kind": "freshness",
+          "status": "error",
+          "failures": null,
+          "message": "max_loaded_at_time_ago_in_s=432175.328258"
+        },
+        {
+          "check": "t_data_freshness_orders",
+          "kind": "test",
+          "status": "fail",
+          "failures": 1,
+          "message": "Got 1 result, configured to fail if != 0"
+        },
+        {
+          "check": "t_volume_daily_order_items_drop",
+          "kind": "test",
+          "status": "fail",
+          "failures": 28,
+          "message": "Got 28 results, configured to fail if != 0"
+        }
+      ]
+    },
+    "F_silent_value_shift": {
+      "description": "price x100 (cents vs reais) for orders placed 2018-05-01..2018-05-07; counts and keys unchanged",
+      "detected_by": [
+        {
+          "check": "t_payment_vs_item_total",
+          "kind": "test",
+          "status": "warn",
+          "failures": 1479,
+          "message": "Got 1479 results, configured to warn if != 0"
+        }
+      ]
+    }
+  }
+}

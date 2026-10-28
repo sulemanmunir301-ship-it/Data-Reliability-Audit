@@ -1,0 +1,7 @@
+# Pinned to dbt Core 1.x on purpose. `pip install dbt` now installs dbt v2 / Fusion (Rust),
+# whose DuckDB support is still labelled beta in dbt's upgrade docs. See docs/LOG.md.
+dbt-core>=1.9,<2
+dbt-duckdb>=1.9,<2
+duckdb
+pandas
+numpy

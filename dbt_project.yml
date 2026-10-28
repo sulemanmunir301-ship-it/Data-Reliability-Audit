@@ -1,0 +1,16 @@
+name: olist_reliability
+version: "0.1.0"
+config-version: 2
+profile: olist_reliability
+model-paths: ["models"]
+test-paths: ["tests"]
+vars:
+  # "Today" for freshness/volume checks. The Olist data ends mid-2018, so we pin a
+  # reference date instead of using now(). In a real client engagement use current_date.
+  as_of_date: "2018-06-30"
+models:
+  olist_reliability:
+    staging:
+      +materialized: view
+    marts:
+      +materialized: table
