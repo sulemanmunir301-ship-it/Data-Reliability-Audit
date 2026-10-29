@@ -43,7 +43,9 @@ Eight failures injected one at a time (A-H). All eight were detected, but read h
 - A same-weekday baseline adapts to an outage: after ~4 weeks the broken state looks normal. The freshness check therefore uses a slow 180-day median.
 Synthetic scenarios were written after the checks, so "all detected" is a plumbing test, not evidence of quality.
 
-## Findings on the real Olist data (baseline run, 4 tables only; new checks not yet run on real data)
+## Findings on the real Olist data (4 tables only; as_of_date 2018-08-31)
+Second run with the redesigned checks: 22 pass, 3 warn, 3 error. last_healthy_day FAIL (1), early_hours_gap FAIL (6 days), volume severe FAIL (24 days: ~9 holiday-season, 4 strike, 2 unexplained June 2017, 9 end-of-data), volume moderate WARN (34), payment mismatch WARN (249), orders without payment WARN (1). Newest-order-date freshness still passes. 24 + 34 = 58, matching the earlier single-tier count.
+
 - 20 of 22 original checks pass; types, keys and orphans are clean in orders, customers, items, payments.
 - Volume rule at 70%: 58 flagged days through 2018-08-31 (about 8% of days). Groups: Dec 2017-Jan 1 (21, post-Black-Friday baseline plus holidays), May 21-31 2018 (11, coincides with the national truckers' strike), Easter/Carnival/Independence-Day days, July 6-12 2018 (6, unexplained), Aug 22-31 2018 (10, ramp-down to zero), and 4 unexplained 2017 days.
 - Late Aug 2018: daily items fall 216 -> 0 over Aug 22-30; September has 16 orders and October 4. Newest-order-date freshness passes anyway because of those stragglers.
@@ -64,6 +66,6 @@ Synthetic scenarios were written after the checks, so "all detected" is a plumbi
 1. Download from https://www.kaggle.com/datasets/olistbr/brazilian-ecommerce (free account) and extract the CSVs into `data/olist/`.
 2. `python scripts/load_raw.py data/olist data/olist.duckdb`
 3. `python scripts/profile_raw.py data/olist.duckdb` and READ `results/profile.md` (types, nulls, date range, duplicates).
-4. Set `as_of_date` in `dbt_project.yml` near the newest order date from the profile.
+4. Set the reference date for this session: `set AS_OF_DATE=2018-08-31` (Windows cmd) or `export AS_OF_DATE=2018-08-31`. Choose it from the profile; real Olist volume collapses after late Aug 2018. Default (synthetic data) is 2018-06-30.
 5. `set OLIST_DB=data/olist.duckdb` (Windows cmd) then `dbt run --profiles-dir .` and `dbt test --profiles-dir .`
 6. Record every failure/warn on the REAL data as a finding, and tune the volume rule only after looking at the flagged days.

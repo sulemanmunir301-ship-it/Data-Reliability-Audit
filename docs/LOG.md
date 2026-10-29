@@ -48,3 +48,9 @@ Dates: 2026-10-28 session. Confidence tags: [Certain] verified this session, [Li
 - Trade-off recorded: raising the volume threshold to 50% removes most holiday noise but stops catching a 40% partial loss; tiers keep both, at the cost of a human reviewing the warn tier.
 - Mistake worth recording: background `nohup` runs are killed when the tool call returns; run long jobs in the foreground with a timeout.
 - Next: user re-runs `dbt run` and `dbt test` on real data to see how the new checks behave; then run the matrix on real data; then load the reviews table.
+
+## 2026-10-29 (evening): redesigned checks run on real data
+- [Certain] Real-data results (user's machine): PASS=22 WARN=3 ERROR=3. Matches predictions: last_healthy_day fails, newest-date freshness passes, orders_without_payments = 1, severe 24 + moderate 34 = 58.
+- Matrix comparison fixed: on real data the baseline is not clean, so detection is now "new failing check OR failing-row count increased vs baseline" (previously required >1.5x, which would hide e.g. a 1-day gap on top of 6 existing flags).
+- as_of_date now overridable with env var AS_OF_DATE (default 2018-06-30) so new zips do not overwrite a local edit.
+- Next: run `python scripts/run_matrix.py data/olist.duckdb` on real data; list the 6 early-hours-gap days and the last healthy day; load the reviews table.

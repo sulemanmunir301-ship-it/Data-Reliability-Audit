@@ -7,7 +7,7 @@ test-paths: ["tests"]
 vars:
   # "Today" for freshness/volume checks. The Olist data ends mid-2018, so we pin a
   # reference date instead of using now(). In a real client engagement use current_date.
-  as_of_date: "2018-06-30"
+  as_of_date: "{{ env_var('AS_OF_DATE', '2018-06-30') }}"
 models:
   olist_reliability:
     staging:

@@ -96,9 +96,11 @@ results = {"baseline_on_clean": baseline, "scenarios": {}}
 for key, (desc, sql) in FAILURES.items():
     probs = run_scenario(sql)
     base_fail = {p["check"]: p["failures"] for p in baseline}
-    # new problem, OR a baseline WARN whose failing-row count grew >1.5x (a worsening known issue)
+    # new problem, OR a check that already failed on the baseline whose failing-row count INCREASED.
+    # (On real data the baseline is not clean, so name-only comparison would hide real detections.)
     new = [p for p in probs if p["check"] not in base_set
-           or (p["failures"] and base_fail.get(p["check"]) and p["failures"] > 1.5 * base_fail[p["check"]])]
+           or (p["failures"] is not None and base_fail.get(p["check"]) is not None
+               and p["failures"] > base_fail[p["check"]])]
     results["scenarios"][key] = {"description": desc, "detected_by": new}
     print(key, "->", [p["check"] for p in new] or "MISSED")
 

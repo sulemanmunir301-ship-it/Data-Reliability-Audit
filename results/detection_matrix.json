@@ -56,6 +56,13 @@
           "status": "fail",
           "failures": 116,
           "message": "Got 116 results, configured to fail if != 0"
+        },
+        {
+          "check": "t_payment_vs_item_total",
+          "kind": "test",
+          "status": "warn",
+          "failures": 748,
+          "message": "Got 748 results, configured to warn if != 0"
         }
       ]
     },
@@ -75,32 +82,32 @@
       "description": "Loader stops: no data after 2018-05-31 and _loaded_at is 5 days old",
       "detected_by": [
         {
-          "check": "source_freshness.raw.customers",
+          "check": "source_freshness.raw.orders",
           "kind": "freshness",
           "status": "error",
           "failures": null,
-          "message": "max_loaded_at_time_ago_in_s=432682.097653"
+          "message": "max_loaded_at_time_ago_in_s=432117.573192"
         },
         {
           "check": "source_freshness.raw.order_payments",
           "kind": "freshness",
           "status": "error",
           "failures": null,
-          "message": "max_loaded_at_time_ago_in_s=432681.82777"
+          "message": "max_loaded_at_time_ago_in_s=432117.095384"
+        },
+        {
+          "check": "source_freshness.raw.customers",
+          "kind": "freshness",
+          "status": "error",
+          "failures": null,
+          "message": "max_loaded_at_time_ago_in_s=432117.322869"
         },
         {
           "check": "source_freshness.raw.order_items",
           "kind": "freshness",
           "status": "error",
           "failures": null,
-          "message": "max_loaded_at_time_ago_in_s=432681.96868"
-        },
-        {
-          "check": "source_freshness.raw.orders",
-          "kind": "freshness",
-          "status": "error",
-          "failures": null,
-          "message": "max_loaded_at_time_ago_in_s=432682.360716"
+          "message": "max_loaded_at_time_ago_in_s=432117.226083"
         },
         {
           "check": "t_data_freshness_last_healthy_day",
