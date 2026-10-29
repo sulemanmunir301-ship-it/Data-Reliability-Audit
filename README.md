@@ -49,3 +49,11 @@ because 40% loss leaves exactly 60%. The rule here is <70% of the same-weekday 4
 - Real Olist data ends in 2018; set `as_of_date` in `dbt_project.yml` accordingly and expect to **tune the volume rule** (sparse 2016, Black Friday 2017).
 - Olist is reportedly CC BY-NC-SA 4.0 (non-commercial). Verify on Kaggle; do not redistribute the data. This repo's `.gitignore` excludes `data/`.
 - `dbt run` + `dbt test` is used instead of `dbt build` because build skips downstream nodes after an upstream test failure (good for gating, worse for detection).
+
+## Running on the real Olist data
+1. Download from https://www.kaggle.com/datasets/olistbr/brazilian-ecommerce (free account) and extract the CSVs into `data/olist/`.
+2. `python scripts/load_raw.py data/olist data/olist.duckdb`
+3. `python scripts/profile_raw.py data/olist.duckdb` and READ `results/profile.md` (types, nulls, date range, duplicates).
+4. Set `as_of_date` in `dbt_project.yml` near the newest order date from the profile.
+5. `set OLIST_DB=data/olist.duckdb` (Windows cmd) then `dbt run --profiles-dir .` and `dbt test --profiles-dir .`
+6. Record every failure/warn on the REAL data as a finding, and tune the volume rule only after looking at the flagged days.

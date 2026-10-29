@@ -30,3 +30,9 @@ Dates: 2026-10-28 session. Confidence tags: [Certain] verified this session, [Li
 1. Download real Olist (Kaggle login), run the pipeline, record real quirks as findings; set `as_of_date`; tune volume rule.
 2. Demand test BEFORE more engineering: collect 15-20 current postings/gig listings; for each record budget and whether the buyer describes wrong/broken numbers. Message 5-10 small businesses with one concrete finding. Decide pivot if <2 replies or budgets << $300.
 3. Add per-day average price check (closes gap F).
+
+## 2026-10-29: Windows run + real-data prep
+- [Certain] User ran the full pipeline on Windows (Anaconda Prompt, Python 3.12 env); output matched the sandbox run exactly (same seed). Windows needs `set OLIST_DB=...` instead of the bash syntax.
+- [Certain] Hard-fail detection is 5 of 6; failure F (silent x100 price shift) is caught only by a WARN. Add a per-day average-price check.
+- Added `scripts/profile_raw.py` (profile raw tables before running checks); tested on synthetic data only.
+- Decision: go to real Olist data before publishing; commit locally to avoid losing work.
