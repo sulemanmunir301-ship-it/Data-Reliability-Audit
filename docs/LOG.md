@@ -54,3 +54,10 @@ Dates: 2026-10-28 session. Confidence tags: [Certain] verified this session, [Li
 - Matrix comparison fixed: on real data the baseline is not clean, so detection is now "new failing check OR failing-row count increased vs baseline" (previously required >1.5x, which would hide e.g. a 1-day gap on top of 6 existing flags).
 - as_of_date now overridable with env var AS_OF_DATE (default 2018-06-30) so new zips do not overwrite a local edit.
 - Next: run `python scripts/run_matrix.py data/olist.duckdb` on real data; list the 6 early-hours-gap days and the last healthy day; load the reviews table.
+
+## 2026-10-29 (night): real-data matrix and hourly drill-down
+- [Certain] Real matrix: A 945 / B 4,820 / C 314 / D 1 clean detections; E, F, G, H as described in README. Real baseline already red on severe volume (24), early-hours gap (6), last-healthy-day freshness.
+- Correction to my own earlier statement: I said G and H were both buried in noise. H jumps severe 24 -> 43 and early-hours 6 -> 19, which is visible if counts are tracked; only G (+1, +1) is buried.
+- [Certain] Hourly counts: Nov 20 2017 first orders at 10:00; Aug 2 2018 first orders at 12:00 with 104 orders in that hour. [Likely] delayed-ingestion backlog; cause unconfirmed.
+- Results files now written per database (detection_matrix_<db>.md) so runs no longer overwrite each other.
+- Not done: acknowledged-events list, reviews table, demand validation, real-data JSON for the matrix beyond what the user kept locally.

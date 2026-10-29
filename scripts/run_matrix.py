@@ -2,7 +2,7 @@
 build a detection matrix (which checks caught which failure, and which failures were missed).
 
 usage: python scripts/run_matrix.py <clean.duckdb>
-writes: results/detection_matrix.md and results/detection_matrix.json
+writes: results/detection_matrix_<dbname>.md and .json (e.g. detection_matrix_olist.md for olist.duckdb)
 
 Injected failures are SYNTHETIC. The matrix shows what these checks can catch; it is not a
 measurement of how often such failures occur in real businesses.
@@ -105,7 +105,7 @@ for key, (desc, sql) in FAILURES.items():
     print(key, "->", [p["check"] for p in new] or "MISSED")
 
 (ROOT / "results").mkdir(exist_ok=True)
-(ROOT / "results" / "detection_matrix.json").write_text(json.dumps(results, indent=2, default=str))
+(ROOT / "results" / f"detection_matrix_{clean.stem}.json").write_text(json.dumps(results, indent=2, default=str))
 
 md = ["# Detection matrix", "",
       "Failures are synthetic and injected one at a time into a copy of the clean database.",
@@ -117,5 +117,5 @@ for key, v in results["scenarios"].items():
     cell = "<br>".join(f"`{p['check']}`" + (f" ({p['failures']})" if p["failures"] is not None else "")
                        + f" [{p['status']}]" for p in caught) or "**MISSED**"
     md.append(f"| {key} | {v['description']} | {'yes' if caught else 'NO'} | {cell} |")
-(ROOT / "results" / "detection_matrix.md").write_text("\n".join(md) + "\n")
-print("wrote results/detection_matrix.md")
+(ROOT / "results" / f"detection_matrix_{clean.stem}.md").write_text("\n".join(md) + "\n")
+print(f"wrote results/detection_matrix_{clean.stem}.md")

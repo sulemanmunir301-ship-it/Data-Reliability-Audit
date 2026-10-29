@@ -34,7 +34,7 @@ volume drop vs same-weekday baseline (with date spine), delivered orders without
 payments, payment-vs-item reconciliation (warn), data freshness, raw schema drift, model ownership
 (`meta.owner`), and loader-level source freshness.
 
-## Results on synthetic data (see `results/detection_matrix.md`)
+## Results on synthetic data (see `results/detection_matrix_clean.md`)
 Clean baseline: 26 pass, 2 warn (seeded payment mismatch; canceled orders without payments).
 Eight failures injected one at a time (A-H). All eight were detected, but read how:
 - A (40% item loss) is caught by a hard-fail check only because of `t_delivered_orders_without_items`; the volume rule sees it only at WARN tier.
@@ -44,16 +44,23 @@ Eight failures injected one at a time (A-H). All eight were detected, but read h
 Synthetic scenarios were written after the checks, so "all detected" is a plumbing test, not evidence of quality.
 
 ## Findings on the real Olist data (4 tables only; as_of_date 2018-08-31)
-Second run with the redesigned checks: 22 pass, 3 warn, 3 error. last_healthy_day FAIL (1), early_hours_gap FAIL (6 days), volume severe FAIL (24 days: ~9 holiday-season, 4 strike, 2 unexplained June 2017, 9 end-of-data), volume moderate WARN (34), payment mismatch WARN (249), orders without payment WARN (1). Newest-order-date freshness still passes. 24 + 34 = 58, matching the earlier single-tier count.
+Full matrix: `results/detection_matrix_olist.md`. Profile: `results/profile.md`.
+Redesigned checks on real data: 22 pass, 3 warn, 3 error (24 severe + 34 moderate volume flags = 58 days; 249 payment mismatches; 1 order without payment; 6 early-hours-gap days; last healthy day 2018-08-23).
 
-- 20 of 22 original checks pass; types, keys and orphans are clean in orders, customers, items, payments.
-- Volume rule at 70%: 58 flagged days through 2018-08-31 (about 8% of days). Groups: Dec 2017-Jan 1 (21, post-Black-Friday baseline plus holidays), May 21-31 2018 (11, coincides with the national truckers' strike), Easter/Carnival/Independence-Day days, July 6-12 2018 (6, unexplained), Aug 22-31 2018 (10, ramp-down to zero), and 4 unexplained 2017 days.
-- Late Aug 2018: daily items fall 216 -> 0 over Aug 22-30; September has 16 orders and October 4. Newest-order-date freshness passes anyway because of those stragglers.
-- Jun 21 and Jun 27, 2017: zero orders before 09:00 (Jun 21 total: 35 orders vs 72-156 on other June days). Candidate partial-day gaps; cause unknown.
-- November 2016 has no orders; December 2016 has 1.
-- 249 payment-vs-item mismatches: 232 are overpayments (median +6.98 BRL, range -51.62 to +182.81), consistent with installment interest (not verified).
-- 1 order without a payment row; 3 payments typed `not_defined`; 96,096 unique customers across 99,441 customer_ids.
-- Not examined: reviews, products, sellers, geolocation tables.
+How to read the real-data matrix (this is the honest part):
+- **Clean detections (5 of 8):** A, B, C, D, E are caught by checks that pass on the real baseline.
+- **Warn-only (1):** F (silent price x100) is caught only by the payment-mismatch warning (249 -> 2,143 rows). No hard-fail check exists.
+- **Visible only as a jump in an already-red count (2):** H (severe volume 24 -> 43, early-hours 6 -> 19) is visible if someone tracks the counts; G (partial-day gap) moves two counts by +1 each and is effectively buried.
+- The real baseline is already red on three error-level checks. Monitoring that is always red hides new problems; the standard fix (not built here) is an acknowledged-events list so only unexplained days stay red.
+
+Real-data observations:
+- Late Aug 2018: daily items fall 216 -> 0 over Aug 22-30; September has 16 orders, October 4. Newest-order-date freshness passes anyway because of those stragglers.
+- Nov 20, 2017 and Aug 2, 2018: no orders before 10:00 and 12:00 respectively, then a burst (Aug 2: 104 orders in the 12:00 hour vs 16-28 in neighbouring hours; Nov 20: 52 in the 11:00 hour vs 13 and 29 around it). Daily totals look normal or high, so the day-level volume check misses them. Consistent with a delayed-ingestion backlog; cause not confirmed.
+- Jun 21, 2017: 35 orders vs 72-156 on other June days, none before 09:00, no catch-up burst (a low day, a different pattern). Jun 27, 2017: normal total, none before 09:00.
+- 58 volume-flag days: Dec 2017-Jan 1 (21, post-Black-Friday baseline plus holidays), May 21-31 2018 (11, coincides with the national truckers' strike), Easter/Carnival/Independence-Day days, July 6-12 2018 (6, unexplained), Aug 22-31 2018 (10, end-of-data ramp-down), 4 unexplained 2017 days.
+- 1 delivered order (Sept 2016) has no payment row; 3 payments typed `not_defined`; 249 payment-vs-item mismatches, 232 of them overpayments (median +6.98 BRL), consistent with installment interest (not verified); November 2016 has no orders.
+- 96,096 unique customers across 99,441 customer_ids.
+- Not examined: reviews, products, sellers, geolocation tables. Demand for a paid audit is NOT validated.
 
 ## Limitations (read these)
 - Failures are **synthetic**; this shows what the checks can catch, not how often failures occur in practice.
