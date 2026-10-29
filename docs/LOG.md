@@ -36,3 +36,15 @@ Dates: 2026-10-28 session. Confidence tags: [Certain] verified this session, [Li
 - [Certain] Hard-fail detection is 5 of 6; failure F (silent x100 price shift) is caught only by a WARN. Add a per-day average-price check.
 - Added `scripts/profile_raw.py` (profile raw tables before running checks); tested on synthetic data only.
 - Decision: go to real Olist data before publishing; commit locally to avoid losing work.
+
+## 2026-10-29 (later): real Olist baseline + check redesign
+- [Certain] Real data loaded on user's Windows machine: 99,441 orders, 112,650 items, 103,886 payments; types and column names match; newest order 2018-10-17.
+- [Certain] Baseline dbt run on real data: 20 pass, 1 warn (249), 1 error (volume). as_of_date first stayed 2018-06-30 (edit did not save), then set to 2018-08-31 via command; flagged days rose 42 -> 58.
+- [Likely] May 21-31 2018 flags coincide with the truckers' strike (21 May - ~1 June; https://en.wikipedia.org/wiki/2018_Brazil_truck_drivers%27_strike). A volume rule cannot tell a strike from an outage.
+- [Certain] Late Aug 2018 ramp-down to 0 orders; max-date freshness is blind to it (stragglers in Sep/Oct).
+- [Certain] Jun 21 and Jun 27, 2017 have zero orders before 09:00; day-level volume check missed Jun 27.
+- Design changes made (tested on synthetic only): new model `daily_volume` (same-weekday baseline, 28-day early-orders baseline, 180-day median); volume split into severe (<50%, error) and moderate (50-70%, warn); `t_data_freshness_last_healthy_day` (slow baseline); `t_early_hours_gap`; `t_orders_without_payments`.
+- Bug found in own design: same-weekday baseline self-heals during outages longer than ~4 weeks; fixed for freshness with the 180-day median. The severe volume test still goes quiet after ~4 weeks of outage (documented limitation).
+- Trade-off recorded: raising the volume threshold to 50% removes most holiday noise but stops catching a 40% partial loss; tiers keep both, at the cost of a human reviewing the warn tier.
+- Mistake worth recording: background `nohup` runs are killed when the tool call returns; run long jobs in the foreground with a timeout.
+- Next: user re-runs `dbt run` and `dbt test` on real data to see how the new checks behave; then run the matrix on real data; then load the reviews table.

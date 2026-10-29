@@ -5,3 +5,8 @@ models:
     columns:
       - name: order_item_key
         data_tests: [unique, not_null]
+  - name: daily_volume
+    config: {meta: {owner: "analytics@example.com"}}
+    columns:
+      - name: d
+        data_tests: [unique, not_null]

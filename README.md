@@ -34,14 +34,24 @@ volume drop vs same-weekday baseline (with date spine), delivered orders without
 payments, payment-vs-item reconciliation (warn), data freshness, raw schema drift, model ownership
 (`meta.owner`), and loader-level source freshness.
 
-## Results (synthetic data) — see `results/detection_matrix.md`
-Clean baseline: 21 pass, 1 warn (seeded ~1% payment mismatch). All six injected failures were detected,
-**but F (silent price x100) was caught only by a WARN-level cross-source reconciliation**, which does not
-trigger an alert in `run_checks.py` (exit code 0). That is the real finding: value-level corruption with
-unchanged counts and keys has no hard-fail check here, and it is only visible because payments exist as an
-independent source to reconcile against. Next check to add: per-day average price vs baseline.
-Also: the first volume rule in the original plan (flag <60% of average) would have missed a 40% drop,
-because 40% loss leaves exactly 60%. The rule here is <70% of the same-weekday 4-week average.
+## Results on synthetic data (see `results/detection_matrix.md`)
+Clean baseline: 26 pass, 2 warn (seeded payment mismatch; canceled orders without payments).
+Eight failures injected one at a time (A-H). All eight were detected, but read how:
+- A (40% item loss) is caught by a hard-fail check only because of `t_delivered_orders_without_items`; the volume rule sees it only at WARN tier.
+- F (silent price x100) is caught only by a WARN-level reconciliation. No hard-fail check exists for value corruption with unchanged counts and keys.
+- H (feed stalls but ~1% stragglers keep arriving) is NOT caught by the newest-order-date freshness check. Only the 180-day-baseline check catches it.
+- A same-weekday baseline adapts to an outage: after ~4 weeks the broken state looks normal. The freshness check therefore uses a slow 180-day median.
+Synthetic scenarios were written after the checks, so "all detected" is a plumbing test, not evidence of quality.
+
+## Findings on the real Olist data (baseline run, 4 tables only; new checks not yet run on real data)
+- 20 of 22 original checks pass; types, keys and orphans are clean in orders, customers, items, payments.
+- Volume rule at 70%: 58 flagged days through 2018-08-31 (about 8% of days). Groups: Dec 2017-Jan 1 (21, post-Black-Friday baseline plus holidays), May 21-31 2018 (11, coincides with the national truckers' strike), Easter/Carnival/Independence-Day days, July 6-12 2018 (6, unexplained), Aug 22-31 2018 (10, ramp-down to zero), and 4 unexplained 2017 days.
+- Late Aug 2018: daily items fall 216 -> 0 over Aug 22-30; September has 16 orders and October 4. Newest-order-date freshness passes anyway because of those stragglers.
+- Jun 21 and Jun 27, 2017: zero orders before 09:00 (Jun 21 total: 35 orders vs 72-156 on other June days). Candidate partial-day gaps; cause unknown.
+- November 2016 has no orders; December 2016 has 1.
+- 249 payment-vs-item mismatches: 232 are overpayments (median +6.98 BRL, range -51.62 to +182.81), consistent with installment interest (not verified).
+- 1 order without a payment row; 3 payments typed `not_defined`; 96,096 unique customers across 99,441 customer_ids.
+- Not examined: reviews, products, sellers, geolocation tables.
 
 ## Limitations (read these)
 - Failures are **synthetic**; this shows what the checks can catch, not how often failures occur in practice.

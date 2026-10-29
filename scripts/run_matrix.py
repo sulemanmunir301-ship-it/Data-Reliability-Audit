@@ -62,6 +62,18 @@ FAILURES = {
            where order_id in (select order_id from raw.orders
              where cast(order_purchase_timestamp as date) between date '2018-05-01' and date '2018-05-07');""",
     ),
+    "G_partial_day_gap": (
+        "All orders placed before 09:00 on 2018-04-10 missing (intra-day gap, daily total only ~-37%)",
+        """delete from raw.order_payments where order_id in (select order_id from raw.orders where cast(order_purchase_timestamp as date) = date '2018-04-10' and hour(order_purchase_timestamp) < 9);
+           delete from raw.order_items where order_id in (select order_id from raw.orders where cast(order_purchase_timestamp as date) = date '2018-04-10' and hour(order_purchase_timestamp) < 9);
+           delete from raw.orders where cast(order_purchase_timestamp as date) = date '2018-04-10' and hour(order_purchase_timestamp) < 9;""",
+    ),
+    "H_stalled_feed_with_stragglers": (
+        "Feed stalls after 2018-05-31 but ~1% of orders keep trickling in (so newest-order-date still looks fresh)",
+        """delete from raw.order_payments where order_id in (select order_id from raw.orders where cast(order_purchase_timestamp as date) > date '2018-05-31' and hash(order_id) % 100 >= 1);
+           delete from raw.order_items where order_id in (select order_id from raw.orders where cast(order_purchase_timestamp as date) > date '2018-05-31' and hash(order_id) % 100 >= 1);
+           delete from raw.orders where cast(order_purchase_timestamp as date) > date '2018-05-31' and hash(order_id) % 100 >= 1;""",
+    ),
 }
 
 

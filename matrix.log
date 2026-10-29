@@ -1,0 +1,10 @@
+baseline problems on CLEAN data: ['t_orders_without_payments', 't_payment_vs_item_total']
+A_partial_item_loss -> ['t_delivered_orders_without_items', 't_volume_drop_moderate']
+B_null_customer_ids -> ['not_null_stg_orders_customer_id']
+C_duplicated_payments -> ['t_duplicate_payment_rows']
+D_schema_drift -> ['t_raw_schema_drift']
+E_loader_stopped -> ['source_freshness.raw.customers', 'source_freshness.raw.order_payments', 'source_freshness.raw.order_items', 'source_freshness.raw.orders', 't_data_freshness_last_healthy_day', 't_data_freshness_orders', 't_early_hours_gap', 't_volume_drop_severe']
+F_silent_value_shift -> ['t_payment_vs_item_total']
+G_partial_day_gap -> ['t_early_hours_gap']
+H_stalled_feed_with_stragglers -> ['t_data_freshness_last_healthy_day', 't_early_hours_gap', 't_volume_drop_severe']
+wrote results/detection_matrix.md
