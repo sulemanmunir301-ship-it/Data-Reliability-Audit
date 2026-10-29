@@ -1,0 +1,214 @@
+{
+  "baseline_on_clean": [
+    {
+      "check": "t_data_freshness_last_healthy_day",
+      "kind": "test",
+      "status": "fail",
+      "failures": 1,
+      "message": "Got 1 result, configured to fail if != 0"
+    },
+    {
+      "check": "t_early_hours_gap",
+      "kind": "test",
+      "status": "fail",
+      "failures": 6,
+      "message": "Got 6 results, configured to fail if != 0"
+    },
+    {
+      "check": "t_volume_drop_moderate",
+      "kind": "test",
+      "status": "warn",
+      "failures": 34,
+      "message": "Got 34 results, configured to warn if != 0"
+    },
+    {
+      "check": "t_orders_without_payments",
+      "kind": "test",
+      "status": "warn",
+      "failures": 1,
+      "message": "Got 1 result, configured to warn if != 0"
+    },
+    {
+      "check": "t_volume_drop_severe",
+      "kind": "test",
+      "status": "fail",
+      "failures": 24,
+      "message": "Got 24 results, configured to fail if != 0"
+    },
+    {
+      "check": "t_payment_vs_item_total",
+      "kind": "test",
+      "status": "warn",
+      "failures": 249,
+      "message": "Got 249 results, configured to warn if != 0"
+    }
+  ],
+  "scenarios": {
+    "A_partial_item_loss": {
+      "description": "40% of order_items missing for orders placed 2018-03-01..2018-03-10",
+      "detected_by": [
+        {
+          "check": "t_delivered_orders_without_items",
+          "kind": "test",
+          "status": "fail",
+          "failures": 945,
+          "message": "Got 945 results, configured to fail if != 0"
+        },
+        {
+          "check": "t_volume_drop_moderate",
+          "kind": "test",
+          "status": "warn",
+          "failures": 42,
+          "message": "Got 42 results, configured to warn if != 0"
+        }
+      ]
+    },
+    "B_null_customer_ids": {
+      "description": "15% of orders from 2018-04-01 lose customer_id",
+      "detected_by": [
+        {
+          "check": "not_null_stg_orders_customer_id",
+          "kind": "test",
+          "status": "fail",
+          "failures": 4820,
+          "message": "Got 4820 results, configured to fail if != 0"
+        }
+      ]
+    },
+    "C_duplicated_payments": {
+      "description": "All payments for orders placed 2018-02-14 loaded twice (retry)",
+      "detected_by": [
+        {
+          "check": "t_duplicate_payment_rows",
+          "kind": "test",
+          "status": "fail",
+          "failures": 314,
+          "message": "Got 314 results, configured to fail if != 0"
+        },
+        {
+          "check": "t_payment_vs_item_total",
+          "kind": "test",
+          "status": "warn",
+          "failures": 540,
+          "message": "Got 540 results, configured to warn if != 0"
+        }
+      ]
+    },
+    "D_schema_drift": {
+      "description": "order_items.price silently changes type DOUBLE -> VARCHAR",
+      "detected_by": [
+        {
+          "check": "t_raw_schema_drift",
+          "kind": "test",
+          "status": "fail",
+          "failures": 1,
+          "message": "Got 1 result, configured to fail if != 0"
+        }
+      ]
+    },
+    "E_loader_stopped": {
+      "description": "Loader stops: no data after 2018-05-31 and _loaded_at is 5 days old",
+      "detected_by": [
+        {
+          "check": "source_freshness.raw.customers",
+          "kind": "freshness",
+          "status": "error",
+          "failures": null,
+          "message": "max_loaded_at_time_ago_in_s=427815.417454"
+        },
+        {
+          "check": "source_freshness.raw.order_payments",
+          "kind": "freshness",
+          "status": "error",
+          "failures": null,
+          "message": "max_loaded_at_time_ago_in_s=427813.805627"
+        },
+        {
+          "check": "source_freshness.raw.order_items",
+          "kind": "freshness",
+          "status": "error",
+          "failures": null,
+          "message": "max_loaded_at_time_ago_in_s=427814.495636"
+        },
+        {
+          "check": "source_freshness.raw.orders",
+          "kind": "freshness",
+          "status": "error",
+          "failures": null,
+          "message": "max_loaded_at_time_ago_in_s=427816.112496"
+        },
+        {
+          "check": "t_data_freshness_orders",
+          "kind": "test",
+          "status": "fail",
+          "failures": 1,
+          "message": "Got 1 result, configured to fail if != 0"
+        },
+        {
+          "check": "t_early_hours_gap",
+          "kind": "test",
+          "status": "fail",
+          "failures": 20,
+          "message": "Got 20 results, configured to fail if != 0"
+        },
+        {
+          "check": "t_volume_drop_severe",
+          "kind": "test",
+          "status": "fail",
+          "failures": 43,
+          "message": "Got 43 results, configured to fail if != 0"
+        }
+      ]
+    },
+    "F_silent_value_shift": {
+      "description": "price x100 (cents vs reais) for orders placed 2018-05-01..2018-05-07; counts and keys unchanged",
+      "detected_by": [
+        {
+          "check": "t_payment_vs_item_total",
+          "kind": "test",
+          "status": "warn",
+          "failures": 2143,
+          "message": "Got 2143 results, configured to warn if != 0"
+        }
+      ]
+    },
+    "G_partial_day_gap": {
+      "description": "All orders placed before 09:00 on 2018-04-10 missing (intra-day gap, daily total only ~-37%)",
+      "detected_by": [
+        {
+          "check": "t_early_hours_gap",
+          "kind": "test",
+          "status": "fail",
+          "failures": 7,
+          "message": "Got 7 results, configured to fail if != 0"
+        },
+        {
+          "check": "t_volume_drop_moderate",
+          "kind": "test",
+          "status": "warn",
+          "failures": 35,
+          "message": "Got 35 results, configured to warn if != 0"
+        }
+      ]
+    },
+    "H_stalled_feed_with_stragglers": {
+      "description": "Feed stalls after 2018-05-31 but ~1% of orders keep trickling in (so newest-order-date still looks fresh)",
+      "detected_by": [
+        {
+          "check": "t_early_hours_gap",
+          "kind": "test",
+          "status": "fail",
+          "failures": 19,
+          "message": "Got 19 results, configured to fail if != 0"
+        },
+        {
+          "check": "t_volume_drop_severe",
+          "kind": "test",
+          "status": "fail",
+          "failures": 43,
+          "message": "Got 43 results, configured to fail if != 0"
+        }
+      ]
+    }
+  }
+}
