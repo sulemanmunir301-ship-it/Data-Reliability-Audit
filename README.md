@@ -4,8 +4,19 @@ A reproducible case study of **silent data failures**: pipelines that "succeed" 
 are wrong. It injects realistic failures into an e-commerce dataset, runs open-source checks, and
 reports **which failures were caught and which were missed**.
 
-> Status: tested end-to-end on **synthetic Olist-shaped data** (see Limitations). Not yet run on
-> the real Kaggle dataset.
+> Status: built and run end-to-end on **synthetic Olist-shaped data** and on the **real Olist dataset** (4 of its 9 tables). Results for both are below. Demand for a paid audit service based on this is **not validated**.
+
+## Purpose
+Show, with evidence, how common data checks (row counts, freshness, key tests) behave on real data, where they raise false alarms, and where they stay silent while the numbers are wrong. It is a portfolio case study in data-quality thinking, not a monitoring product.
+
+## Best use cases
+- **Portfolio / interview material:** every finding below is reproducible and the weaknesses are written down.
+- **Template for a small "data health check":** the dbt checks, the failure-injection script and the detection matrix can be adapted to a small team's Postgres/BigQuery/Sheets reporting (demand untested).
+- **Teaching example:** shows why "newest record date" freshness, same-weekday baselines and day-level volume checks each fail in specific ways.
+- **Not for:** production monitoring, or replacing dedicated observability tools.
+
+## How this was built
+Built by Suleman Munir **with AI assistance (Claude, Anthropic)**. The AI wrote the initial code, tests and analysis drafts. The author chose the topic direction, downloaded the Olist data, ran every step on their own machine, supplied the real-data outputs the findings come from, decided to test on real data first, and published the repository. Real-data numbers in this README come from the author's runs; interpretations marked "likely" or "unverified" are hypotheses.
 
 ## Why this problem (evidence, with caveats)
 | Claim | Source | Caveat |
@@ -17,22 +28,29 @@ reports **which failures were caught and which were missed**.
 None of these samples are small businesses. **Small-business willingness to pay is unvalidated.**
 
 ## Quickstart
-```bash
-python -m venv venv && source venv/bin/activate
+Windows (Anaconda Prompt):
+```
+conda create -n reliability python=3.12 -y
+conda activate reliability
 pip install -r requirements.txt                       # dbt-core 1.x pinned on purpose
 python scripts/make_synthetic_olist.py data/synthetic # or put real Olist CSVs in data/olist
 python scripts/load_raw.py data/synthetic data/clean.duckdb
-OLIST_DB=data/clean.duckdb dbt run  --profiles-dir . && OLIST_DB=data/clean.duckdb dbt test --profiles-dir .
-python scripts/run_matrix.py data/clean.duckdb        # injects failures, writes results/detection_matrix.md
+set OLIST_DB=data/clean.duckdb
+dbt run --profiles-dir .
+dbt test --profiles-dir .
+python scripts/run_matrix.py data/clean.duckdb        # injects failures, writes results/detection_matrix_clean.md
 ```
-Alerts: `python scripts/run_checks.py --slack` (needs `SLACK_WEBHOOK_URL`) or `--email` (needs `SMTP_*`).
-**Slack and email sending are untested** (no network in the build sandbox); the report/exit-code logic is tested.
+Mac/Linux: replace `set NAME=value` with `export NAME=value`.
+
+Alerts: `python scripts/run_checks.py --slack` (needs `SLACK_WEBHOOK_URL`) or `--email` (needs `SMTP_*`). **Slack and email sending are untested**; the report and exit-code logic is tested.
 
 ## What is checked
-Generic tests (unique, not_null, accepted_values, relationships) plus singular tests in `tests/`:
-volume drop vs same-weekday baseline (with date spine), delivered orders without items, duplicate
-payments, payment-vs-item reconciliation (warn), data freshness, raw schema drift, model ownership
-(`meta.owner`), and loader-level source freshness.
+28 dbt tests: generic tests (unique, not_null, accepted_values, relationships) and these singular tests in `tests/`:
+- `t_volume_drop_severe` (error, below 50% of the same-weekday 4-week baseline) and `t_volume_drop_moderate` (warn, 50-70%), using a full date spine so empty days count
+- `t_data_freshness_orders` (newest order date) and `t_data_freshness_last_healthy_day` (last day with at least 50% of a slow 180-day median baseline)
+- `t_early_hours_gap` (zero orders before 09:00 when ~5+ are normal)
+- `t_delivered_orders_without_items`, `t_duplicate_payment_rows`, `t_orders_without_payments` (warn), `t_payment_vs_item_total` (warn), `t_raw_schema_drift`, `t_model_ownership` (`meta.owner`)
+Plus loader-level `dbt source freshness`.
 
 ## Results on synthetic data (see `results/detection_matrix_clean.md`)
 Clean baseline: 26 pass, 2 warn (seeded payment mismatch; canceled orders without payments).
@@ -64,8 +82,8 @@ Real-data observations:
 
 ## Limitations (read these)
 - Failures are **synthetic**; this shows what the checks can catch, not how often failures occur in practice.
-- Data is generated to look like Olist; table/column names follow Kaggle's schema from secondary sources, not verified against the real files.
-- Real Olist data ends in 2018; set `as_of_date` in `dbt_project.yml` accordingly and expect to **tune the volume rule** (sparse 2016, Black Friday 2017).
+- The synthetic data is generated to look like Olist. For the real data, column names and types were verified for four tables only (orders, customers, order_items, order_payments).
+- Real Olist data effectively ends in late Aug 2018; set `AS_OF_DATE` accordingly (see below). The volume rule is noisy on real data (holidays, a national strike, post-Black-Friday baselines) and was NOT tuned to hide that.
 - Olist is reportedly CC BY-NC-SA 4.0 (non-commercial). Verify on Kaggle; do not redistribute the data. This repo's `.gitignore` excludes `data/`.
 - `dbt run` + `dbt test` is used instead of `dbt build` because build skips downstream nodes after an upstream test failure (good for gating, worse for detection).
 
