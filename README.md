@@ -84,7 +84,7 @@ Real-data observations:
 - Failures are **synthetic**; this shows what the checks can catch, not how often failures occur in practice.
 - The synthetic data is generated to look like Olist. For the real data, column names and types were verified for four tables only (orders, customers, order_items, order_payments).
 - Real Olist data effectively ends in late Aug 2018; set `AS_OF_DATE` accordingly (see below). The volume rule is noisy on real data (holidays, a national strike, post-Black-Friday baselines) and was NOT tuned to hide that.
-- Olist is reportedly CC BY-NC-SA 4.0 (non-commercial). Verify on Kaggle; do not redistribute the data. This repo's `.gitignore` excludes `data/`.
+- "Brazilian E-Commerce Public Dataset by Olist" on Kaggle, listed there under CC BY-NC-SA 4.0 (attribution, non-commercial, share-alike); checked 2026-11-16. Do not redistribute the data. This repo's '.gitignore' excludes 'data/'.
 - `dbt run` + `dbt test` is used instead of `dbt build` because build skips downstream nodes after an upstream test failure (good for gating, worse for detection).
 
 ## Running on the real Olist data
