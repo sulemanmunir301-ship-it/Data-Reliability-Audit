@@ -84,8 +84,10 @@ Real-data observations:
 - Failures are **synthetic**; this shows what the checks can catch, not how often failures occur in practice.
 - The synthetic data is generated to look like Olist. For the real data, column names and types were verified for four tables only (orders, customers, order_items, order_payments).
 - Real Olist data effectively ends in late Aug 2018; set `AS_OF_DATE` accordingly (see below). The volume rule is noisy on real data (holidays, a national strike, post-Black-Friday baselines) and was NOT tuned to hide that.
-- "Brazilian E-Commerce Public Dataset by Olist" on Kaggle, listed there under CC BY-NC-SA 4.0 (attribution, non-commercial, share-alike); checked 2026-11-16. Do not redistribute the data. This repo's '.gitignore' excludes 'data/'.
+- Dataset: "Brazilian E-Commerce Public Dataset by Olist" on Kaggle, listed there under CC BY-NC-SA 4.0 (attribution, non-commercial, share-alike); checked 2026-11-16. Do not redistribute the data. This repo's `.gitignore` excludes `data/`.
 - `dbt run` + `dbt test` is used instead of `dbt build` because build skips downstream nodes after an upstream test failure (good for gating, worse for detection).
+- The `meta.owner` values in the dbt schema files are placeholder addresses (`@example.com`). `t_model_ownership` checks that an owner is present, not that it is real, so it demonstrates the check and does not prove accountability.
+- The stale-order rule used in the metric contract (non-delivered and older than 46 days at 2018-10-17, the last purchase date) is equivalent to "purchased on or before 2018-08-31", which is also the `AS_OF_DATE` used for the volume checks. It is one cutoff, stated two ways.
 
 ## Running on the real Olist data
 1. Download from https://www.kaggle.com/datasets/olistbr/brazilian-ecommerce (free account) and extract the CSVs into `data/olist/`.
