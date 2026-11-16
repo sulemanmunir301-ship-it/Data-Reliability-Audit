@@ -4,6 +4,7 @@ select
     i.order_id,
     i.order_item_id,
     o.customer_id,
+    c.customer_unique_id,
     c.customer_state,
     o.order_status,
     o.purchased_at,
