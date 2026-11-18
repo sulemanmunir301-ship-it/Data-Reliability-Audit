@@ -45,15 +45,16 @@ Mac/Linux: replace `set NAME=value` with `export NAME=value`.
 Alerts: `python scripts/run_checks.py --slack` (needs `SLACK_WEBHOOK_URL`) or `--email` (needs `SMTP_*`). **Slack and email sending are untested**; the report and exit-code logic is tested.
 
 ## What is checked
-28 dbt tests: generic tests (unique, not_null, accepted_values, relationships) and these singular tests in `tests/`:
+30 dbt tests: generic tests (unique, not_null, accepted_values, relationships) and these singular tests in `tests/`:
 - `t_volume_drop_severe` (error, below 50% of the same-weekday 4-week baseline) and `t_volume_drop_moderate` (warn, 50-70%), using a full date spine so empty days count
 - `t_data_freshness_orders` (newest order date) and `t_data_freshness_last_healthy_day` (last day with at least 50% of a slow 180-day median baseline)
 - `t_early_hours_gap` (zero orders before 09:00 when ~5+ are normal)
 - `t_delivered_orders_without_items`, `t_duplicate_payment_rows`, `t_orders_without_payments` (warn), `t_payment_vs_item_total` (warn), `t_raw_schema_drift`, `t_model_ownership` (`meta.owner`)
+- - `t_fct_reconciles_to_staging` (error): total price in `fct_order_items` must equal the total in `stg_order_items`
 Plus loader-level `dbt source freshness`.
 
 ## Results on synthetic data (see `results/detection_matrix_clean.md`)
-Clean baseline: 26 pass, 2 warn (seeded payment mismatch; canceled orders without payments).
+Clean baseline: 28 pass, 2 warn (seeded payment mismatch; canceled orders without payments).
 Eight failures injected one at a time (A-H). All eight were detected, but read how:
 - A (40% item loss) is caught by a hard-fail check only because of `t_delivered_orders_without_items`; the volume rule sees it only at WARN tier.
 - F (silent price x100) is caught only by a WARN-level reconciliation. No hard-fail check exists for value corruption with unchanged counts and keys.
@@ -63,7 +64,7 @@ Synthetic scenarios were written after the checks, so "all detected" is a plumbi
 
 ## Findings on the real Olist data (4 tables only; as_of_date 2018-08-31)
 Full matrix: `results/detection_matrix_olist.md`. Profile: `results/profile.md`.
-Redesigned checks on real data: 22 pass, 3 warn, 3 error (24 severe + 34 moderate volume flags = 58 days; 249 payment mismatches; 1 order without payment; 6 early-hours-gap days; last healthy day 2018-08-23).
+Redesigned checks on real data: 24 pass, 3 warn, 3 error (24 severe + 34 moderate volume flags = 58 days; 249 payment mismatches; 1 order without payment; 6 early-hours-gap days; last healthy day 2018-08-23).
 
 How to read the real-data matrix (this is the honest part):
 - **Clean detections (5 of 8):** A, B, C, D, E are caught by checks that pass on the real baseline.
