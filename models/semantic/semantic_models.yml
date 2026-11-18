@@ -1,0 +1,62 @@
+semantic_models:
+  - name: order_items
+    description: One row per order item (fct_order_items).
+    model: ref('fct_order_items')
+    defaults:
+      agg_time_dimension: purchase_date
+    entities:
+      - name: order_item
+        type: primary
+        expr: order_item_key
+      - name: order
+        type: foreign
+        expr: order_id
+      - name: person
+        type: foreign
+        expr: customer_unique_id
+    dimensions:
+      - name: purchase_date
+        type: time
+        type_params:
+          time_granularity: day
+      - name: order_status
+        type: categorical
+    measures:
+      - name: item_price_sum
+        description: Sum of item price, freight excluded.
+        agg: sum
+        expr: price
+      - name: freight_sum
+        description: Sum of freight charged on items.
+        agg: sum
+        expr: freight_value
+      - name: order_count
+        description: Distinct orders.
+        agg: count_distinct
+        expr: order_id
+
+metrics:
+  - name: completed_revenue
+    label: Completed revenue
+    description: Item price (freight excluded) on orders with status delivered.
+    type: simple
+    type_params:
+      measure: item_price_sum
+    filter: |
+      {{ Dimension('order_item__order_status') }} = 'delivered'
+  - name: freight_total
+    label: Freight total
+    description: Freight charged on orders with status delivered.
+    type: simple
+    type_params:
+      measure: freight_sum
+    filter: |
+      {{ Dimension('order_item__order_status') }} = 'delivered'
+  - name: completed_orders
+    label: Completed orders
+    description: Number of distinct orders with status delivered.
+    type: simple
+    type_params:
+      measure: order_count
+    filter: |
+      {{ Dimension('order_item__order_status') }} = 'delivered'
