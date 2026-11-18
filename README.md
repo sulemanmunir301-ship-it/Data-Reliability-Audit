@@ -50,7 +50,7 @@ Alerts: `python scripts/run_checks.py --slack` (needs `SLACK_WEBHOOK_URL`) or `-
 - `t_data_freshness_orders` (newest order date) and `t_data_freshness_last_healthy_day` (last day with at least 50% of a slow 180-day median baseline)
 - `t_early_hours_gap` (zero orders before 09:00 when ~5+ are normal)
 - `t_delivered_orders_without_items`, `t_duplicate_payment_rows`, `t_orders_without_payments` (warn), `t_payment_vs_item_total` (warn), `t_raw_schema_drift`, `t_model_ownership` (`meta.owner`)
-- - `t_fct_reconciles_to_staging` (error): total price in `fct_order_items` must equal the total in `stg_order_items`
+- `t_fct_reconciles_to_staging` (error): total price in `fct_order_items` must equal the total in `stg_order_items`
 Plus loader-level `dbt source freshness`.
 
 ## Results on synthetic data (see `results/detection_matrix_clean.md`)
