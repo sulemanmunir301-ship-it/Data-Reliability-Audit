@@ -30,6 +30,26 @@ semantic_models:
         description: Sum of freight charged on items.
         agg: sum
         expr: freight_value
+  - name: orders
+    description: One row per order, all statuses (fct_orders).
+    model: ref('fct_orders')
+    defaults:
+      agg_time_dimension: purchase_date
+    entities:
+      - name: order
+        type: primary
+        expr: order_id
+      - name: person
+        type: foreign
+        expr: customer_unique_id
+    dimensions:
+      - name: purchase_date
+        type: time
+        type_params:
+          time_granularity: day
+      - name: order_status
+        type: categorical
+    measures:
       - name: order_count
         description: Distinct orders.
         agg: count_distinct
@@ -59,4 +79,10 @@ metrics:
     type_params:
       measure: order_count
     filter: |
-      {{ Dimension('order_item__order_status') }} = 'delivered'
+      {{ Dimension('order__order_status') }} = 'delivered'
+  - name: orders_placed
+    label: Orders placed
+    description: Number of distinct orders of any status.
+    type: simple
+    type_params:
+      measure: order_count
