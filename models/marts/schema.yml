@@ -7,6 +7,11 @@ models:
         data_tests: [unique, not_null]
       - name: customer_unique_id
         data_tests: [not_null]
+  - name: fct_orders
+    config: {meta: {owner: "analytics@example.com"}}
+    columns:
+      - name: order_id
+        data_tests: [unique, not_null]
   - name: daily_volume
     config: {meta: {owner: "analytics@example.com"}}
     columns:
