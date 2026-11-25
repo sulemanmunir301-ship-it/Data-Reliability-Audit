@@ -54,6 +54,29 @@ semantic_models:
         description: Distinct orders.
         agg: count_distinct
         expr: order_id
+  - name: customers
+    description: One row per person (fct_customers).
+    model: ref('fct_customers')
+    defaults:
+      agg_time_dimension: first_order_date
+    entities:
+      - name: person
+        type: primary
+        expr: customer_unique_id
+    dimensions:
+      - name: first_order_date
+        type: time
+        type_params:
+          time_granularity: day
+    measures:
+      - name: repeat_customer_sum
+        description: People with 2 or more delivered orders.
+        agg: sum
+        expr: is_repeat_customer
+      - name: delivered_customer_sum
+        description: People with at least 1 delivered order.
+        agg: sum
+        expr: has_delivered_order
 
 metrics:
   - name: completed_revenue
@@ -86,3 +109,22 @@ metrics:
     type: simple
     type_params:
       measure: order_count
+  - name: repeat_customers
+    label: Repeat customers
+    description: People with 2 or more delivered orders.
+    type: simple
+    type_params:
+      measure: repeat_customer_sum
+  - name: customers_with_delivered_order
+    label: Customers with a delivered order
+    description: People with at least 1 delivered order.
+    type: simple
+    type_params:
+      measure: delivered_customer_sum
+  - name: repeat_purchase_rate
+    label: Repeat purchase rate
+    description: Repeat customers divided by customers with a delivered order.
+    type: ratio
+    type_params:
+      numerator: repeat_customers
+      denominator: customers_with_delivered_order
