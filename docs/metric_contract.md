@@ -26,7 +26,7 @@ Stale orders: a non-delivered order is flagged stale when it is more than 46 day
 | Metric | Definition | Built on | Verified result |
 |---|---|---|---|
 | `completed_revenue` | Sum of item price (freight excluded) on delivered orders | `fct_order_items`, one row per item | 13,221,498.11 |
-| `freight_total` | Sum of freight charged on delivered orders | `fct_order_items` | FREIGHT_FIGURE_TO_FILL |
+| `freight_total` | Sum of freight charged on delivered orders | `fct_order_items` | 2,198,275.64 |
 | `orders_placed` | Distinct orders of any status | `fct_orders`, one row per order | 99,441 |
 | `completed_orders` | Distinct delivered orders | `fct_orders` | 96,478 |
 | `repeat_purchase_rate` | People with 2 or more delivered orders, divided by people with at least 1 delivered order | `fct_customers`, one row per person | 2,801 / 93,358 = 3.00% |
